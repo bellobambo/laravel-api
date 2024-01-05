@@ -7,16 +7,28 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1CustomerResource;
+use App\Http\Resources\V1CustomerCollection;
+use App\Filters\V1\CustomerFilter;
+use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Customer::all();
+        $filter = new CustomerFilter();
+        $queryItems = $filter->transform($request);
+
+        if (count($queryItems) == 0) {
+            return new V1CustomerCollection(Customer::paginate());
+        } else {
+
+            return new V1CustomerCollection(Customer::where($queryItems)->paginate());
+        }
     }
+
 
     /**
      * Show the form for creating a new resource.
