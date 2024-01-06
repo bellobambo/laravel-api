@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1CustomerResource;
 use App\Http\Resources\V1CustomerCollection;
 use App\Filters\V1\CustomerFilter;
+use App\Http\Requests\V1StoreCustomerRequest;
+use App\Http\Requests\V1UpdateCustomerRequest;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -19,30 +21,31 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $filter = new CustomerFilter();
-        $queryItems = $filter->transform($request);
+        $filterItems = $filter->transform($request);
 
-        if (count($queryItems) == 0) {
-            return new V1CustomerCollection(Customer::paginate());
-        } else {
+        $includeInvoices = $request->query('includeInvoices');
 
-            return new V1CustomerCollection(Customer::where($queryItems)->paginate());
+        $customers = Customer::where($filterItems);
+
+        if ($includeInvoices) {
+            $customers = $customers->with('invoices');
         }
+
+
+        return new V1CustomerCollection($customers->paginate()->appends($request->query()));
+
+
     }
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCustomerRequest $request)
+    public function store(V1StoreCustomerRequest $request)
     {
+        return new V1CustomerResource(Customer::create($request->all()));
 
     }
 
@@ -51,23 +54,22 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        return new V1CustomerResource($customer);
-    }
+        $includeInvoices = request()->query('includeInvoices');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Customer $customer)
-    {
-        //
+        if ($includeInvoices) {
+
+            return new V1CustomerResource($customer->loadMissing('invoices'));
+        }
+
+        return new V1CustomerResource($customer);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCustomerRequest $request, Customer $customer)
+    public function update(V1UpdateCustomerRequest $request, Customer $customer)
     {
-        //
+        $customer->update($request->all());
     }
 
     /**

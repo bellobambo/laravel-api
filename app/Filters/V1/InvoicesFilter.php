@@ -21,7 +21,8 @@ class InvoicesFilter extends ApFilter
     protected $columnMap = [
         'customer_id' => 'customer_id',
         'billed_date' => 'billed_date',
-        'paid_date' => 'paid_date'
+        'paid_date' => 'paid_date',
+        'status' => 'status', 
     ];
 
     protected $operatorMap = [
@@ -30,7 +31,7 @@ class InvoicesFilter extends ApFilter
         'lte' => '<=',
         'gt' => '>',
         'gte' => '>=',
-        'ne' => '!='
+        'ne' => '!=='
     ];
 
 
